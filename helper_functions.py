@@ -1,4 +1,3 @@
-
 import torch
 
 from tqdm.auto import tqdm
@@ -6,10 +5,10 @@ from typing import Dict, List, Tuple
 
 # Function to train and evaluate the model
 def train_step(model: torch.nn.Module,
-                      dataloader: torch.utils.data.DataLoader,
-                      criterion: torch.nn.Module,
-                      optimizer: torch.optim.Optimizer,
-                      device: torch.device):
+              dataloader: torch.utils.data.DataLoader,
+              criterion: torch.nn.Module,
+              optimizer: torch.optim.Optimizer,
+              device: torch.device):
   """
   This function performs a training step for a single epoch.
   Turns a pytoch model into training mode and then runs it 
@@ -28,7 +27,7 @@ def train_step(model: torch.nn.Module,
   # put the model into traing mode
   model.train()
   # set the train loss value
-  train_loss = 0
+  train_loss = 0.0
 
   # loop throught the batches of the DataLoader and train
   for batch, (X,y) in enumerate(dataloader):
@@ -41,7 +40,7 @@ def train_step(model: torch.nn.Module,
     
     # calculate and accumulate the loss
     loss = criterion(y_pred,y)
-    train_loss += loss.item
+    train_loss += loss.item()
 
     # set optimizer zero grad
     optimizer.zero_grad()
@@ -128,20 +127,18 @@ def train(model: torch.nn.Module,
                   test_loss: [1.2641, 1.5706],
   """
   # Create empty results dictionary
-  results = {"train_loss": [],
-      "test_loss": [],
-  }
+  results = {"train_loss": [],"test_loss": []}
 
   # Loop through training and testing steps for a number of epochs
   for epoch in tqdm(range(epochs)):
       train_loss = train_step(model=model,
-                                    dataloader=train_dataloader,
-                                    criterion=criterion,
-                                    optimizer=optimizer,
-                                    device=device)
+                              dataloader=train_dataloader,
+                              criterion=criterion,
+                              optimizer=optimizer,
+                              device=device)
       
       test_loss = test_step(model=model,
-                            dataloader=test_data,
+                            test_data=test_data,
                             criterion=criterion,
                             device=device)
 
