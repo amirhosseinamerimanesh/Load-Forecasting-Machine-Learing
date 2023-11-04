@@ -157,4 +157,4 @@ def train(model: torch.nn.Module,
       results["test_loss"].append(test_loss)
 
   # Return the filled results at the end of the epochs
-  return model,results
+  return results
