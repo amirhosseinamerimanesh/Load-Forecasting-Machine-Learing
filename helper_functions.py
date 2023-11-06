@@ -1,5 +1,5 @@
 import torch
-
+import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
@@ -155,3 +155,33 @@ def train(model: torch.nn.Module,
 
   # Return the filled results at the end of the epochs
   return results
+
+
+def plot_perfomance_results(loss_results:dict):
+  """Takes a Dict of results produced by the train function
+  and plots the results
+  Args:
+    loss_results: its a dict with two key values 
+    train_loss and test_loss
+  Returns:
+    plots the models train and test loss with respect to the epochs
+  """
+    # Get the number of epochs or data points
+  epochs = len(loss_results['train_loss'])
+
+  # Plotting the train loss
+  plt.plot(range(1, epochs + 1), loss_results['train_loss'], label='Train Loss')
+
+  # Plotting the test loss
+  plt.plot(range(1, epochs + 1), loss_results['test_loss'], label='Test Loss')
+
+  # Adding labels and title
+  plt.xlabel('Epochs')
+  plt.ylabel('Loss')
+  plt.title('Train and Test Loss Over Epochs')
+
+  # Adding a legend
+  plt.legend()
+
+  # Show the plot
+  plt.show()
