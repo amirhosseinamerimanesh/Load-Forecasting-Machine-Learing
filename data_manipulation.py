@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 # Function to get the DataFrame and extract the features
 def feature_extractor(df: pd.DataFrame)-> pd.DataFrame:
     """
-    This function gets a dataframe with 3 columns: being, Time,Power,
+    This function gets a DataFrame with 3 columns: being, Time,Power,
     and Temp. Then extracts required features
 
     Args:
@@ -50,14 +50,14 @@ def feature_extractor(df: pd.DataFrame)-> pd.DataFrame:
 def std_normalizer(df : pd.DataFrame,
                    col_name : str):
     """
-    This function gets a data frame and a column name and does the-
+    This function gets a df frame and a column name and does the-
     normalization operation.
 
     Args:
         df : its a panda.DataFrame object.
         col_name : its a string and the name of the desired column to noramlize.
     
-    Returns: A pandas.DataFrame as same as the input data frame, but with normalized column and 
+    Returns: A pandas.DataFrame as same as the input df frame, but with normalized column and 
     the std and mean values as a list in case, there is an unromalization.
     """
     df_mean = df[col_name].mean()
@@ -66,3 +66,44 @@ def std_normalizer(df : pd.DataFrame,
     print(f"\nNormalization is done for column : {col_name}")
     return df , [df_mean , df_std]
 
+
+def create_historical_dataset(df : pd.DataFrame, window_size : int,
+                              exclude_columns: list =[])-> pd.DataFrame:
+  """
+  This function recieves a pd.DataFrame object, with multiple features and a window size
+  then creates a new df frame with each row representing window-sized previous values , and a
+  respective next target value.
+
+  Args:
+    df : Its the desired df frame.
+    window_size : Its a int number for creating the windowed data frame
+
+  Returns:
+    A new pd.DataFrame object with windowed features 
+  """
+  # Ensure the input DataFrame has the required columns
+  if 'power' not in df.columns:
+      raise ValueError("Input DataFrame must have a 'power' column.")
+
+  # Create empty DataFrame to store historical df
+  historical_df = pd.DataFrame()
+
+  # Include original features
+  for col in df.columns:
+    historical_df[col] = df[col]
+
+  # exclude the columns that are not going to be shiftted
+  df.drop(columns=exclude_columns, axis=1, inplace=True)
+  
+  # Create lag features for the specified window size
+  for i in range(1, window_size + 1):
+    for col in df.columns:
+      historical_df[f'{col}_lag_{i}'] = df[col].shift(i)
+
+  # Add the target variable (power) shifted by the window size
+  historical_df['target_power'] = df['power'].shift(-1)
+
+  # Drop rows with NaN values introduced by shifting
+  historical_df = historical_df.dropna().reset_index(drop=True)
+
+  return historical_df
