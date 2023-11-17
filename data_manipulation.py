@@ -159,3 +159,33 @@ def create_historical_dataset(df: pd.DataFrame,
   historical_df = historical_df.dropna().reset_index(drop=True)
 
   return historical_df
+
+
+def create_sequences_with_target(data : np.array,
+                                 sequence_length : int, 
+                                 target_feature_index : int):
+  """
+  This function recieves a np.array object, which is the original dataset, and
+  makes a sequential dataset to be fed to our lstm model.
+
+  Args:
+    data : is the transformed pd.DataFrame into numpy array.
+    sequence_length : which is the required seq lenght
+    target_feature_index : is the index of the target column, in the-
+    original data frame
+
+  Returns:
+    sequences : is the processed dataset
+    targets : is the respective target value for each row in sequence.
+  """
+  sequences, targets = [], []
+  num_samples, num_features = data.shape
+
+  for i in range(num_samples - sequence_length):
+    sequence = data[i:i+sequence_length, :]
+    target = data[i+sequence_length, target_feature_index]
+
+    sequences.append(sequence)
+    targets.append(target)
+
+  return np.array(sequences), np.array(targets)
