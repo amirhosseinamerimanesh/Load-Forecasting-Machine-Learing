@@ -3,53 +3,6 @@ import numpy as np
 from typing import Dict, List, Tuple
 import jdatetime 
 
-# Function to get the DataFrame and extract the features
-def feature_extractor(df: pd.DataFrame)-> pd.DataFrame:
-  """
-  This function gets a DataFrame with 3 columns: being, Time,Power,
-  and Temp. Then extracts feature from time
-
-  Args:
-      df: a pandas DataFrame, including a time, power, and temp columns
-
-  Returns:
-      A new pandas.DataFrame object with the new features
-  """
-  # make a copy of the data frame
-  copy_df = df.copy()
-  # addding mutiple columns using the "time" col
-  copy_df["week_day"] = copy_df["time"].dt.weekday
-  copy_df["day"] = copy_df["time"].dt.day
-  copy_df['month'] = copy_df["time"].dt.month
-  copy_df["hour"] = copy_df["time"].dt.hour
-
-  # extracting features
-  copy_df['up_of_month']=(copy_df['day']<=10).astype(int)
-  copy_df['down_of_month']=(copy_df['day']>20).astype(int)
-  copy_df['sin_day']=np.sin(2*np.pi*copy_df['day']/30)
-  copy_df['cos_day']=np.cos(2*np.pi*copy_df['day']/30)
-
-  copy_df['morning']=((copy_df['hour']>5)&(copy_df['hour']<=12)).astype(int)
-  copy_df['afternoon']=((copy_df['hour']>12)&(copy_df['hour']<=19)).astype(int)
-  copy_df['evening']=(1-copy_df['morning']-copy_df['afternoon']).astype(int)
-
-  #  whether its thursday | friday or not
-  copy_df['weekend'] = ((copy_df["week_day"] == 4) | (copy_df["week_day"] == 3)).astype(int)
-  copy_df['time_slot'] = pd.cut(copy_df["hour"], bins=[0, 6, 12, 18, 24], labels=[1, 2, 3, 4], right=False)
-  copy_df['peak_load'] = ((copy_df["hour"] >= 11) & (copy_df["hour"] <= 15)).astype(int)
-
-  copy_df['spring']=((copy_df['month']>=3)&(copy_df['month']<=5)).astype(int)
-  copy_df['summer']=((copy_df['month']>=6)&(copy_df['month']<=8)).astype(int)
-  copy_df['fall']=((copy_df['month']>=9)&(copy_df['month']<=11)).astype(int)
-  copy_df['winter']=((copy_df['month']==12)&(copy_df['month']<=2)).astype(int)
-
-  # dropping non-informative columns
-  copy_df.drop( ["day", "week_day", "month","hour"] , axis = 1, inplace = True)
-  print(f"number of features: {len(copy_df.columns)}, including the 'time' column\ncolumns are :\n{df.columns.values}")
-
-  return copy_df
-
-
 def std_normalizer(df : pd.DataFrame,
                    col_name : str):
   """
@@ -159,3 +112,33 @@ def create_historical_dataset(df: pd.DataFrame,
   historical_df = historical_df.dropna().reset_index(drop=True)
 
   return historical_df
+
+
+def create_sequences_with_target(data : np.array,
+                                 sequence_length : int, 
+                                 target_feature_index : int):
+  """
+  This function recieves a np.array object, which is the original dataset, and
+  makes a sequential dataset to be fed to our lstm model.
+
+  Args:
+    data : is the transformed pd.DataFrame into numpy array.
+    sequence_length : which is the required seq lenght
+    target_feature_index : is the index of the target column, in the-
+    original data frame
+
+  Returns:
+    sequences : is the processed dataset
+    targets : is the respective target value for each row in sequence.
+  """
+  sequences, targets = [], []
+  num_samples, num_features = data.shape
+
+  for i in range(num_samples - sequence_length):
+    sequence = data[i:i+sequence_length, :]
+    target = data[i+sequence_length, target_feature_index]
+
+    sequences.append(sequence)
+    targets.append(target)
+
+  return np.array(sequences), np.array(targets)
